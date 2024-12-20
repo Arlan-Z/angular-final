@@ -9,6 +9,14 @@ import { Router } from "@angular/router";
 
 @Injectable({ providedIn: "root" })
 export class UserService {
+  private mockUser: User = {
+    email: "email@ex.com",
+    token: "12345678912345",
+    username: "random",
+    bio: "Hello world",
+    image: "no image",
+  };
+
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser = this.currentUserSubject
     .asObservable()
@@ -22,13 +30,25 @@ export class UserService {
     private readonly router: Router,
   ) {}
 
-  login(credentials: { // Task 2
+  login(credentials: {
     email: string;
     password: string;
   }): Observable<{ user: User }> {
-    return this.http
-      .post<{ user: User }>("/users/login", { user: credentials })
-      .pipe(tap(({ user }) => this.setAuth(user)));
+    if (
+      credentials.email === this.mockUser.email &&
+      credentials.password === "password123"
+    ) {
+      this.setAuth(this.mockUser);
+      return new Observable((observer) => {
+        observer.next({ user: this.mockUser });
+        observer.complete();
+      });
+    } else {
+      return new Observable((observer) => {
+        observer.error({ errors: { "email or password": ["is invalid"] } });
+        observer.complete();
+      });
+    }
   }
 
   register(credentials: {
